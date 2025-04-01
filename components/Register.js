@@ -4,10 +4,11 @@ import axios from "axios";
 
 export default function Register() {
   const router = useRouter();
+  const [name, setName] = useState ("")
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState(""); // Confirm password field
-  const [errorMessage, setErrorMessage] = useState(""); // State for error message
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState(""); 
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -17,7 +18,7 @@ export default function Register() {
     }
 
     try {
-      await axios.post(process.env.NEXT_PUBLIC_API_URL + "/register", { email, password });
+      await axios.post(process.env.NEXT_PUBLIC_API_URL + "/api/auth/register", { name, email, password });
       router.push("/login");
     } catch (error) {
       setErrorMessage("Registration failed. Please try again.");
@@ -26,13 +27,21 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-sky-100">
+    <div className="min-h-screen flex items-center justify-center bg-white">
       <div className="bg-[#4A6C78] w-full max-w-md p-8 border rounded-lg shadow-md">
       <h2 className="text-2xl font-bold text-white mb-4 text-center">Register</h2>
         {errorMessage && (
           <div className="bg-red-100 text-red-600 p-2 rounded mb-4">{errorMessage}</div>
         )}
         <form onSubmit={handleRegister} className="space-y-4">
+        <input
+            type="name"
+            placeholder="Name"
+            className="bg-white w-full p-2 border border-white-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-black"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
           <input
             type="email"
             placeholder="Email"

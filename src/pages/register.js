@@ -4,13 +4,14 @@ import axios from "axios";
 
 export default function Register() {
   const router = useRouter();
+  const [name, setName] = useState(""); // Added state for name
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(process.env.NEXT_PUBLIC_API_URL + "/register", { email, password });
+      await axios.post(process.env.NEXT_PUBLIC_API_URL + "/auth/register", { name, email, password });
       router.push("/login");
     } catch (error) {
       console.error("Registration failed", error);
@@ -18,10 +19,17 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white">Z
+    <div className="min-h-screen flex items-center justify-center bg-white">
       <div className="w-full max-w-md p-8 border rounded-lg shadow-md">
         <h2 className="text-2xl font-bold text-sky-600 mb-4 text-center">Register</h2>
         <form onSubmit={handleRegister} className="space-y-4">
+          <input
+            type="text"
+            placeholder="Name"
+            className="w-full p-2 border rounded-md"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
           <input
             type="email"
             placeholder="Email"

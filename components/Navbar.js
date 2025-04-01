@@ -11,15 +11,12 @@ export default function Navbar({ isLoggedIn }) {
   return (
     <div className="bg-sky-100 p-4">
       <div className="container mx-auto flex justify-between items-center">
-        {/* Logo: always visible */}
         <h1
           className="text-3xl font-bold text-gray-700 cursor-pointer"
-          onClick={() => router.push("/")}
+          onClick={() => router.reload()}
         >
-          Dental Clinic
+          Dental Scheduling
         </h1>
-        
-        {/* Conditionally render the Sign Out button based on login state */}
         <div className="flex space-x-4">
           {isLoggedIn ? (
             <button

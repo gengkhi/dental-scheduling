@@ -5,24 +5,24 @@ import { useRouter } from "next/router";
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [errorMessage, setErrorMessage] = useState(""); // State for error messages
+  const [errorMessage, setErrorMessage] = useState(""); 
   const router = useRouter();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await API.post("/auth/login", { email, password });
+      const response = await API.post("/api/auth/login", { email, password });
       localStorage.setItem("token", response.data.token);
-      router.push("/"); // Redirect to home after successful login
+      router.push("/booking"); 
     } catch (error) {
-      setErrorMessage("Invalid credentials. Please try again."); // Set error message
+      setErrorMessage("Invalid credentials. Please try again.");
       console.error(error);
     }
   };
 
   return (
 
-    <div className="min-h-screen flex items-center justify-center bg-sky-100">
+    <div className="min-h-screen flex items-center justify-center bg-white">
       <div className="bg-[#4A6C78] w-full max-w-md p-8 border rounded-lg shadow-md">
         <h2 className="text-2xl font-bold text-white text-center mb-4">Login</h2>
         
