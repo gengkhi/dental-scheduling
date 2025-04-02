@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import API from "../utils/api"; // Replace with your actual API utility for handling HTTP requests
+import API from "../../utils/api"; 
 import { useRouter } from "next/router";
 
 export default function Dashboard() {
@@ -11,17 +11,17 @@ export default function Dashboard() {
       try {
         const token = localStorage.getItem("token");
         if (!token) {
-          router.push("/"); // If no token, redirect to home page
+          router.push("/"); 
           return;
         }
 
-        const response = await API.get("/appointments", {
+        const response = await API.get("/api/appointments", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
-        setAppointments(response.data); // Set the appointments in state
+        setAppointments(response.data); 
       } catch (error) {
         console.error("Error fetching appointments:", error);
       }
@@ -34,7 +34,7 @@ export default function Dashboard() {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        router.push("/"); // If no token, redirect to home page
+        router.push("/"); 
         return;
       }
 
