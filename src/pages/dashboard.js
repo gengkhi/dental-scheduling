@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import API from "../../utils/api";
 import { useRouter } from "next/router";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function Dashboard() {
   const [appointments, setAppointments] = useState([]);
@@ -17,21 +19,18 @@ export default function Dashboard() {
           router.push("/");
           return;
         }
-
-        // Fetch patientId first
         const userResponse = await API.post(
-          "/api/getUserID",
+          "/api/getUserID", // Make sure this API endpoint gives user data correctly
           { email },
           { headers: { Authorization: `Bearer ${token}` } }
         );
-
+        console.log(userResponse);
         const patientId = userResponse.data.userId;
         setPatientId(patientId);
 
-        // Fetch appointments with patientId
-        const response = await API.post(
-          "/api/appointments",
-          { patientId },
+        // Fetch appointments for the user using patientId in the URL
+        const response = await API.get(
+          `/api/appointments/${patientId}`, 
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -55,23 +54,25 @@ export default function Dashboard() {
         router.push("/");
         return;
       }
-
-      await API.delete(`/api/appointments/cancel/${appointmentId}`, {
+  
+      await API.delete(`/api/cancel/${appointmentId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-
+  
       setAppointments((prevAppointments) =>
         prevAppointments.filter((appt) => appt._id !== appointmentId)
       );
-
-      alert("Appointment cancelled successfully!");
+  
+      toast.success("Appointment cancelled successfully!");
     } catch (error) {
       console.error("Error cancelling appointment:", error);
-      alert("Failed to cancel appointment. Please try again.");
+      toast.error("Failed to cancel appointment. Please try again.");
     }
   };
+  
+  
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
