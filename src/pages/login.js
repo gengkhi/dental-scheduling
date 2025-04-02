@@ -13,6 +13,7 @@ export default function Login() {
     try {
       const response = await API.post("/api/auth/login", { email, password });
       localStorage.setItem("token", response.data.token);
+      localStorage.setItem("email", response.data.email);
       router.push("/booking"); 
     } catch (error) {
       setErrorMessage("Invalid credentials. Please try again.");

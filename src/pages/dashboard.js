@@ -1,27 +1,45 @@
 import { useState, useEffect } from "react";
-import API from "../../utils/api"; 
+import API from "../../utils/api";
 import { useRouter } from "next/router";
 
 export default function Dashboard() {
   const [appointments, setAppointments] = useState([]);
+  const [patientId, setPatientId] = useState("");
   const router = useRouter();
 
   useEffect(() => {
     const fetchAppointments = async () => {
       try {
         const token = localStorage.getItem("token");
-        if (!token) {
-          router.push("/"); 
+        const email = localStorage.getItem("email");
+
+        if (!token || !email) {
+          router.push("/");
           return;
         }
 
-        const response = await API.get("/api/appointments", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        // Fetch patientId first
+        const userResponse = await API.post(
+          "/api/getUserID",
+          { email },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
 
-        setAppointments(response.data); 
+        const patientId = userResponse.data.userId;
+        setPatientId(patientId);
+
+        // Fetch appointments with patientId
+        const response = await API.post(
+          "/api/appointments",
+          { patientId },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        setAppointments(response.data);
       } catch (error) {
         console.error("Error fetching appointments:", error);
       }
@@ -34,11 +52,11 @@ export default function Dashboard() {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        router.push("/"); 
+        router.push("/");
         return;
       }
 
-      await API.put(`/appointments/cancel/${appointmentId}`, null, {
+      await API.delete(`/api/appointments/cancel/${appointmentId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -46,7 +64,7 @@ export default function Dashboard() {
 
       setAppointments((prevAppointments) =>
         prevAppointments.filter((appt) => appt._id !== appointmentId)
-      ); // Remove cancelled appointment from state
+      );
 
       alert("Appointment cancelled successfully!");
     } catch (error) {
@@ -60,17 +78,20 @@ export default function Dashboard() {
       <h1 className="text-3xl font-bold text-gray-700 mb-6">Your Appointments</h1>
 
       {appointments.length === 0 ? (
-        <p>No upcoming appointments</p>
+        <p className="text-gray-500">No upcoming appointments</p>
       ) : (
         <ul>
           {appointments.map((appointment) => (
             <li key={appointment._id} className="mb-4">
-              <div className="bg-white p-4 rounded-md shadow-md">
-                <h2 className="text-xl font-bold">{appointment.dentist.name}</h2>
-                <p className="text-gray-700">Date: {appointment.slot.time}</p>
+              <div className="bg-white p-6 rounded-lg shadow-lg">
+                <h2 className="text-xl font-semibold text-gray-800">
+                  {appointment.dentist.name}
+                </h2>
+                <p className="text-gray-700">Date: {appointment.date}</p>
+                <p className="text-gray-700">Time: {appointment.slot}</p>
                 <button
                   onClick={() => handleCancelAppointment(appointment._id)}
-                  className="mt-2 bg-red-500 text-white py-2 px-4 rounded-md"
+                  className="mt-4 bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 transition"
                 >
                   Cancel Appointment
                 </button>

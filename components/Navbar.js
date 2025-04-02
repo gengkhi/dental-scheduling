@@ -4,37 +4,53 @@ export default function Navbar({ isLoggedIn }) {
   const router = useRouter();
 
   const handleSignOut = () => {
-    localStorage.removeItem("token"); // Remove token from localStorage
-    router.push("/"); // Redirect to home or login page
+    localStorage.removeItem("token");
+    router.push("/");
   };
 
   return (
-    <div className="bg-sky-100 p-4">
+    <nav className="bg-white shadow-md py-4 px-6 fixed w-full top-0 z-50">
       <div className="container mx-auto flex justify-between items-center">
         <h1
-          className="text-3xl font-bold text-gray-700 cursor-pointer"
-          onClick={() => router.reload()}
+          className="text-3xl font-bold text-blue-600 cursor-pointer"
+          onClick={() => router.push("/")}
         >
           Dental Scheduling
         </h1>
-        <div className="flex space-x-4">
+        <div className="flex space-x-6">
+          {isLoggedIn && (
+            <>
+              <button
+                onClick={() => router.push("/booking")}
+                className="text-gray-700 hover:text-blue-600 transition"
+              >
+                Book an Appointment 
+              </button>
+              <button
+                onClick={() => router.push("/dashboard")}
+                className="text-gray-700 hover:text-blue-600 transition"
+              >
+                Dashboard
+              </button>
+            </>
+          )}
           {isLoggedIn ? (
             <button
               onClick={handleSignOut}
-              className="text-gray-600 hover:text-gray-800"
+              className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition"
             >
               Sign Out
             </button>
           ) : (
             <button
               onClick={() => router.push("/login")}
-              className="text-gray-600 hover:text-gray-800"
+              className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition"
             >
               Login
             </button>
           )}
         </div>
       </div>
-    </div>
+    </nav>
   );
 }
