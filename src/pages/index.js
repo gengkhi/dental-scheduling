@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { motion } from "framer-motion";
 import Services from "../../components/Services";
 import Contact from "../../components/Contact";
+import About from "../../components/About";
 
 export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -19,13 +20,11 @@ export default function Home() {
     if (isLoggedIn) {
       router.push("/booking");
     } else {
-      // Redirect to login page in a new tab if not logged in
       router.push("/login");
     }
   };
 
   const handleRegisterClick = () => {
-    // Redirect to register page in a new tab
     router.push("/register");
   };
 
@@ -63,6 +62,7 @@ export default function Home() {
       </motion.div>
          
       <Services />
+      <About />
       <Contact />
     </div>
   );

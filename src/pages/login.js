@@ -24,7 +24,6 @@ export default function Login() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-6">
       
-      {/* Clinic Details */}
       <div className="text-center mb-8 max-w-2xl">
         <h2 className="text-4xl font-bold text-sky-600">Welcome to SmileCare Dental</h2>
         <p className="text-lg text-gray-700 mt-2">
@@ -46,7 +45,7 @@ export default function Login() {
           <input
             type="email"
             placeholder="Email"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 text-black"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -54,7 +53,7 @@ export default function Login() {
           <input
             type="password"
             placeholder="Password"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 text-black"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required

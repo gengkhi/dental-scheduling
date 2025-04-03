@@ -1,16 +1,17 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Navbar from "../../components/Navbar";
+import { ToastContainer } from "react-toastify";
 import "@/styles/globals.css";
 
 export default function App({ Component, pageProps }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isMounted, setIsMounted] = useState(false); // Added this state to track mount status
+  const [isMounted, setIsMounted] = useState(false); 
   const router = useRouter();
   let logoutTimer;
 
   useEffect(() => {
-    setIsMounted(true); // Set to true once the component mounts on the client side
+    setIsMounted(true); 
 
     const token = localStorage.getItem("token");
     setIsLoggedIn(!!token);
@@ -46,6 +47,7 @@ export default function App({ Component, pageProps }) {
 
   return (
     <div>
+      <ToastContainer position="top-center" autoClose={3000} />
       {isLoggedIn && <Navbar isLoggedIn={isLoggedIn} />}
       <Component {...pageProps} />
     </div>

@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
 import API from "../../utils/api";
+import Router from "next/router";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function Booking() {
   const [dentists, setDentists] = useState([]);
@@ -27,7 +30,6 @@ export default function Booking() {
           setPatientId(response.data.userId);
           setPatientEmail(email);
         } catch (err) {
-          console.error("Error fetching user details:", err);
           setError("Failed to fetch user details.");
         }
       };
@@ -69,31 +71,43 @@ export default function Booking() {
     e.preventDefault();
     setError("");
     setSuccess("");
+  
     if (!selectedDentist || !selectedSlot || !appointmentDate) {
-      setError("Please select all fields.");
+      toast.error("Please fill in all fields.");
       return;
     }
+  
     const payload = {
       patient: patientId,
       email: patientEmail,
       dentist: selectedDentist,
       date: new Date(appointmentDate).toISOString(),
     };
+  
     try {
+      const loadingToast = toast.loading("Booking your appointment...");
+  
       const response = await API.post("/api/appointments", payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (response.status === 200) {
-        setSuccess("Appointment successfully booked!");
-      } else {
-        setError(response.data?.message || "Failed to book appointment.");
+  
+      toast.dismiss(loadingToast);
+  
+      if (response.status === 201 || response.status === 200) {
+        toast.success("Appointment successfully booked!");
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);  } 
+        
+        else {
+        toast.error(response.data?.message || "Failed to book appointment.");
       }
     } catch (err) {
+      toast.dismiss();
       console.error("Error booking appointment:", err);
-      setError("Failed to book appointment. Please try again.");
+      toast.error("Failed to book appointment. Please try again.");
     }
   };
-
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-6">
       <div className="max-w-2xl w-full bg-white p-8 rounded-lg shadow-lg">

@@ -1,4 +1,5 @@
 import { useRouter } from "next/router";
+import { FaUser } from "react-icons/fa"; // Import an icon from react-icons
 
 export default function Navbar({ isLoggedIn }) {
   const router = useRouter();
@@ -24,13 +25,20 @@ export default function Navbar({ isLoggedIn }) {
                 onClick={() => router.push("/booking")}
                 className="text-gray-700 hover:text-blue-600 transition"
               >
-                Book an Appointment 
+                Book an Appointment
               </button>
               <button
                 onClick={() => router.push("/dashboard")}
                 className="text-gray-700 hover:text-blue-600 transition"
               >
                 Dashboard
+              </button>
+              {/* Add Profile Icon Link */}
+              <button
+                onClick={() => router.push("/profile")}
+                className="text-gray-700 hover:text-blue-600 transition"
+              >
+                <FaUser className="inline-block text-xl" /> {/* Profile icon */}
               </button>
             </>
           )}

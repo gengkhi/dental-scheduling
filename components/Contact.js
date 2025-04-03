@@ -1,6 +1,6 @@
 export default function Contact() {
     return (
-      <div className="w-full py-16 bg-white text-center">
+      <div className="w-full py-16 bg-gray-100 text-center">
         <h2 className="text-4xl font-bold text-sky-600">Contact Us</h2>
         <p className="text-lg text-gray-700 mt-4 mb-6">
           Get in touch with our dental experts for inquiries and appointments.
