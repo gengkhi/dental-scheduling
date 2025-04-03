@@ -39,7 +39,7 @@ export default function Profile() {
       // Check if password fields are provided
       if (formData.oldPassword || formData.newPassword) {
         const passwordResponse = await API.put(
-          "/api/users/password",
+          "/api/password",
           { oldPassword: formData.oldPassword, newPassword: formData.newPassword },
           { headers: { Authorization: `Bearer ${token}` } }
         );

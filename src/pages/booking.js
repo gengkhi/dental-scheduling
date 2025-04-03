@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import API from "../../utils/api";
-import Router from "next/router";
 import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 
 export default function Booking() {
   const [dentists, setDentists] = useState([]);
@@ -14,7 +12,6 @@ export default function Booking() {
   const [appointmentDate, setAppointmentDate] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-
   const token = localStorage.getItem("token");
   const email = localStorage.getItem("email");
 
@@ -97,9 +94,8 @@ export default function Booking() {
         toast.success("Appointment successfully booked!");
         setTimeout(() => {
           window.location.reload();
-        }, 1500);  } 
-        
-        else {
+        }, 1500);
+      } else {
         toast.error(response.data?.message || "Failed to book appointment.");
       }
     } catch (err) {
@@ -108,14 +104,12 @@ export default function Booking() {
       toast.error("Failed to book appointment. Please try again.");
     }
   };
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-6">
       <div className="max-w-2xl w-full bg-white p-8 rounded-lg shadow-lg">
         <h2 className="text-3xl font-bold text-blue-700 text-center">Book Your Dental Appointment</h2>
         <p className="text-center text-gray-600 mt-2">Schedule your visit with our professional dentists today.</p>
-        <div className="flex justify-center my-4">
-          <img src="/images/dental-service.png" alt="Dental Care" className="w-20" />
-        </div>
 
         {error && <div className="text-red-500 mb-4 text-center">{error}</div>}
         {success && <div className="text-green-500 mb-4 text-center">{success}</div>}
@@ -155,7 +149,9 @@ export default function Booking() {
               >
                 <option value="">Select a time slot</option>
                 {availableSlots.map((slot, index) => (
-                  <option key={index} value={slot}>{slot}</option>
+                  <option key={index} value={slot} disabled={slot === selectedSlot}>
+                    {slot}
+                  </option>
                 ))}
               </select>
             </div>
