@@ -7,8 +7,8 @@ import 'react-toastify/dist/ReactToastify.css';
 export default function Dashboard() {
   const [appointments, setAppointments] = useState([]);
   const [patientId, setPatientId] = useState("");
-  const [rescheduleAppointment, setRescheduleAppointment] = useState(null);  // Track which appointment is being rescheduled
-  const [availableSlots, setAvailableSlots] = useState([]);
+  const [rescheduleAppointment, setRescheduleAppointment] = useState(null); // Track which appointment is being rescheduled
+  const [availableSlots, setAvailableSlots] = useState([]);  // Available time slots for rescheduling
   const [newDate, setNewDate] = useState("");
   const [newTime, setNewTime] = useState("");
   const router = useRouter();
@@ -38,7 +38,13 @@ export default function Dashboard() {
           },
         });
 
-        setAppointments(response.data);
+        const formattedAppointments = response.data.map((appt) => ({
+          ...appt,
+          formattedDate: new Date(appt.date).toISOString().split('T')[0], 
+          formattedTime: formatTime(appt.slot), 
+        }));
+        
+        setAppointments(formattedAppointments);
       } catch (error) {
         console.error("Error fetching appointments:", error);
       }
@@ -46,6 +52,45 @@ export default function Dashboard() {
 
     fetchAppointments();
   }, []);
+
+  const formatTime = (time) => {
+    const date = new Date(`1970-01-01T${time}:00`); 
+    let hours = date.getHours();
+    let minutes = date.getMinutes();
+    const ampm = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12;
+    hours = hours ? hours : 12; 
+    minutes = minutes < 10 ? `0${minutes}` : minutes;
+  
+    return `${hours} ${ampm}`;
+  };
+  
+
+
+  // Fetch available slots for the selected dentist and date
+  const fetchAvailableSlots = async (selectedDate, dentistId) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        router.push("/");
+        return;
+      }
+
+      const response = await API.get(
+        `/api/appointments/slots/${dentistId}?date=${selectedDate}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setAvailableSlots(response.data);  // Update available slots
+    } catch (error) {
+      console.error("Error fetching available slots:", error);
+      toast.error("Failed to fetch available slots.");
+    }
+  };
 
   const handleCancelAppointment = async (appointmentId) => {
     try {
@@ -72,31 +117,17 @@ export default function Dashboard() {
     }
   };
 
-  const handleReschedule = async (appointmentId, newDate, newTime) => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        router.push("/");
-        return;
-      }
-        const response = await API.put(
-        `/api/appointments/reschedule/${appointmentId}`, 
-        { newDate, newTime },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-  
-      console.log(response.data);
-      toast.success("Appointment rescheduled successfully!");
-      // Update the appointment in the state if needed
-    } catch (error) {
-      console.error("Error rescheduling appointment:", error.response ? error.response.data : error);
-      toast.error("Failed to reschedule the appointment. Please try again.");
-    }
+  const handleReschedule = (appointmentId) => {
+    setRescheduleAppointment(appointmentId);
   };
-  
 
   const handleSubmitReschedule = async () => {
     try {
+      if (!newDate || !newTime) {
+        toast.error("Please select both date and time.");
+        return;
+      }
+
       const token = localStorage.getItem("token");
       if (!token) {
         router.push("/");
@@ -108,13 +139,12 @@ export default function Dashboard() {
         slot: newTime,
       };
 
-      const response = await API.put(`/api/appointments/${rescheduleAppointment}`, updatedAppointment, {
+      await API.put(`/api/appointments/${rescheduleAppointment}`, updatedAppointment, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      // Update the appointment in the state
       setAppointments((prevAppointments) =>
         prevAppointments.map((appt) =>
           appt._id === rescheduleAppointment
@@ -145,10 +175,9 @@ export default function Dashboard() {
                 <h2 className="text-xl font-semibold text-gray-800">
                   {appointment.dentist.name}
                 </h2>
-                <p className="text-gray-700">Date: {appointment.date}</p>
-                <p className="text-gray-700">Time: {appointment.slot}</p>
+                <p className="text-gray-700">Date: {appointment.formattedDate}</p>
+                <p className="text-gray-700">Time: {appointment.formattedTime}</p>
 
-                {/* Reschedule Button */}
                 <button
                   onClick={() => handleReschedule(appointment._id)}
                   className="mt-4 bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition"
@@ -156,7 +185,6 @@ export default function Dashboard() {
                   Reschedule
                 </button>
 
-                {/* Cancel Appointment Button */}
                 <button
                   onClick={() => handleCancelAppointment(appointment._id)}
                   className="mt-4 bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 transition"
@@ -179,7 +207,11 @@ export default function Dashboard() {
             <input
               type="date"
               value={newDate}
-              onChange={(e) => setNewDate(e.target.value)}
+              onChange={(e) => {
+                setNewDate(e.target.value);
+                // Fetch available slots when the date changes
+                fetchAvailableSlots(e.target.value, appointments.find(appt => appt._id === rescheduleAppointment).dentist._id);
+              }}
               className="mb-4 w-full p-2 border rounded-md"
             />
 
@@ -190,11 +222,15 @@ export default function Dashboard() {
               className="mb-4 w-full p-2 border rounded-md"
             >
               <option value="">Select a time</option>
-              {availableSlots.map((slot) => (
-                <option key={slot.time} value={slot.time}>
-                  {slot.time}
-                </option>
-              ))}
+              {availableSlots.length > 0 ? (
+                availableSlots.map((slot) => (
+                  <option key={slot.time} value={slot.time}>
+                    {slot.time}
+                  </option>
+                ))
+              ) : (
+                <option value="">No available slots</option>
+              )}
             </select>
 
             <button
@@ -204,7 +240,7 @@ export default function Dashboard() {
               Submit Reschedule
             </button>
             <button
-              onClick={() => setRescheduleAppointment(null)} 
+              onClick={() => setRescheduleAppointment(null)}
               className="mt-2 text-gray-500"
             >
               Cancel
