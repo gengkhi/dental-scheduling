@@ -7,29 +7,29 @@ export default function Booking() {
   const [availableSlots, setAvailableSlots] = useState([]);
   const [selectedDentist, setSelectedDentist] = useState("");
   const [selectedSlot, setSelectedSlot] = useState("");
+  const [appointmentDate, setAppointmentDate] = useState("");
   const [patientId, setPatientId] = useState("");
   const [patientEmail, setPatientEmail] = useState("");
-  const [appointmentDate, setAppointmentDate] = useState("");
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+
   const token = localStorage.getItem("token");
   const email = localStorage.getItem("email");
 
   useEffect(() => {
+    const fetchUserDetails = async () => {
+      try {
+        const response = await API.post(
+          "/api/getUserId",
+          { email },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setPatientId(response.data.userId);
+        setPatientEmail(email);
+      } catch (err) {
+        toast.error("Failed to fetch user details.");
+      }
+    };
+
     if (!patientId) {
-      const fetchUserDetails = async () => {
-        try {
-          const response = await API.post(
-            "/api/getUserID",
-            { email: email },
-            { headers: { Authorization: `Bearer ${token}` } }
-          );
-          setPatientId(response.data.userId);
-          setPatientEmail(email);
-        } catch (err) {
-          setError("Failed to fetch user details.");
-        }
-      };
       fetchUserDetails();
     }
   }, []);
@@ -49,58 +49,54 @@ export default function Booking() {
   }, [token]);
 
   useEffect(() => {
-    if (selectedDentist) {
+    if (selectedDentist && appointmentDate) {
       const fetchAvailableSlots = async () => {
         try {
-          const response = await API.get(`/api/appointments/slots/${selectedDentist}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
+          const response = await API.get(
+            `/api/appointments/slots/${selectedDentist}?date=${appointmentDate}`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
           setAvailableSlots(response.data);
         } catch (err) {
           console.error("Error fetching available slots:", err);
+          toast.error("Failed to fetch available slots.");
         }
       };
       fetchAvailableSlots();
     }
-  }, [selectedDentist, token]);
+  }, [selectedDentist, appointmentDate, token]);
 
   const handleBooking = async (e) => {
     e.preventDefault();
-    setError("");
-    setSuccess("");
-  
+
     if (!selectedDentist || !selectedSlot || !appointmentDate) {
       toast.error("Please fill in all fields.");
       return;
     }
-  
+
     const payload = {
       patient: patientId,
-      email: patientEmail,
       dentist: selectedDentist,
-      date: new Date(appointmentDate).toISOString(),
+      date: `${appointmentDate} ${selectedSlot}`,
     };
-  
+
     try {
       const loadingToast = toast.loading("Booking your appointment...");
-  
+
       const response = await API.post("/api/appointments", payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
-  
+
       toast.dismiss(loadingToast);
-  
+
       if (response.status === 201 || response.status === 200) {
         toast.success("Appointment successfully booked!");
-        setTimeout(() => {
-          window.location.reload();
-        }, 1500);
+        setTimeout(() => window.location.reload(), 1500);
       } else {
         toast.error(response.data?.message || "Failed to book appointment.");
       }
     } catch (err) {
       toast.dismiss();
-      console.error("Error booking appointment:", err);
       toast.error("Failed to book appointment. Please try again.");
     }
   };
@@ -110,9 +106,6 @@ export default function Booking() {
       <div className="max-w-2xl w-full bg-white p-8 rounded-lg shadow-lg">
         <h2 className="text-3xl font-bold text-blue-700 text-center">Book Your Dental Appointment</h2>
         <p className="text-center text-gray-600 mt-2">Schedule your visit with our professional dentists today.</p>
-
-        {error && <div className="text-red-500 mb-4 text-center">{error}</div>}
-        {success && <div className="text-green-500 mb-4 text-center">{success}</div>}
 
         <form onSubmit={handleBooking} className="space-y-4">
           <div>
@@ -134,12 +127,26 @@ export default function Booking() {
             >
               <option value="">Select a dentist</option>
               {dentists.map((dentist) => (
-                <option key={dentist._id} value={dentist._id}>{dentist.name}</option>
+                <option key={dentist._id} value={dentist._id}>
+                  {dentist.name}
+                </option>
               ))}
             </select>
           </div>
 
           {selectedDentist && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Appointment Date</label>
+              <input
+                type="date"
+                className="mt-1 block w-full border border-blue-300 rounded-md p-2 bg-blue-50 text-black"
+                value={appointmentDate}
+                onChange={(e) => setAppointmentDate(e.target.value)}
+              />
+            </div>
+          )}
+
+          {selectedDentist && appointmentDate && (
             <div>
               <label className="block text-sm font-medium text-gray-700">Select Time Slot</label>
               <select
@@ -149,23 +156,13 @@ export default function Booking() {
               >
                 <option value="">Select a time slot</option>
                 {availableSlots.map((slot, index) => (
-                  <option key={index} value={slot} disabled={slot === selectedSlot}>
-                    {slot}
+                  <option key={index} value={slot.time} disabled={!slot.available}>
+                    {slot.time} {slot.available ? "" : "(Unavailable)"}
                   </option>
                 ))}
               </select>
             </div>
           )}
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Appointment Date</label>
-            <input
-              type="datetime-local"
-              className="mt-1 block w-full border border-blue-300 rounded-md p-2 bg-blue-50 text-black"
-              value={appointmentDate}
-              onChange={(e) => setAppointmentDate(e.target.value)}
-            />
-          </div>
 
           <button
             type="submit"
