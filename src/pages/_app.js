@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
 import Navbar from "../../components/Navbar";
 import { ToastContainer } from "react-toastify";
@@ -8,7 +8,9 @@ export default function App({ Component, pageProps }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isMounted, setIsMounted] = useState(false); 
   const router = useRouter();
-  let logoutTimer;
+  
+  // Use useRef to persist the logoutTimer across renders
+  const logoutTimer = useRef(null);
 
   useEffect(() => {
     setIsMounted(true); 
@@ -21,8 +23,10 @@ export default function App({ Component, pageProps }) {
     }
 
     const resetTimer = () => {
-      clearTimeout(logoutTimer);
-      logoutTimer = setTimeout(() => {
+      if (logoutTimer.current) {
+        clearTimeout(logoutTimer.current);
+      }
+      logoutTimer.current = setTimeout(() => {
         localStorage.removeItem("token");
         setIsLoggedIn(false);
         router.push("/");
@@ -36,7 +40,9 @@ export default function App({ Component, pageProps }) {
     resetTimer();
 
     return () => {
-      clearTimeout(logoutTimer);
+      if (logoutTimer.current) {
+        clearTimeout(logoutTimer.current);
+      }
       window.removeEventListener("mousemove", resetTimer);
       window.removeEventListener("keypress", resetTimer);
       window.removeEventListener("click", resetTimer);
